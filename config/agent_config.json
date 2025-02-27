@@ -1,0 +1,30 @@
+{
+    "framework": "langgraph",
+    "goal": "test",
+    "backstory": "This is a test",
+    "expectedOutcome": "This is a test",
+    "llm": "gpt-3.5-turbo"
+}
+
+researcher = Agent(
+    role='Market Research Analyst',
+    goal='Provide up-to-date market analysis of the AI industry',
+    backstory='An expert analyst with a keen eye for market trends.',
+    tools=[search_tool, web_rag_tool],
+    verbose=True
+)
+
+writer = Agent(
+    role='Content Writer',
+    goal='Craft engaging blog posts about the AI industry',
+    backstory='A skilled writer with a passion for technology.',
+    tools=[docs_tool, file_tool],
+    verbose=True
+)
+
+# Define tasks
+research = Task(
+    description='Research the latest trends in the AI industry and provide a summary.',
+    expected_output='A summary of the top 3 trending developments in the AI industry with a unique perspective on their significance.',
+    agent=researcher
+)
