@@ -69,7 +69,7 @@ def call_crew_agent(state: any):
     print(f"CrewAI topic: {topic}")
     crew_response = "this test msg"
     # Invoke the crew
-    """   print("Invoking CrewAI...")
+    print("Invoking CrewAI...")
     result = crew.kickoff(inputs={'topic': topic})
     print(f"CrewAI result type: {type(result)}")
 
@@ -78,10 +78,14 @@ def call_crew_agent(state: any):
         crew_response = result
     else:
         # Handle other result types
-        crew_response = str(result) """
+        crew_response = str(result) 
 
     state_clone.append(AIMessage(content=crew_response))
     print(f"CrewAI response (truncated): {crew_response[:100]}...")
     state["messages"] = state_clone
     print("Finished call_crew_agent")
     return {"messages": state["messages"]}
+
+
+
+Agent

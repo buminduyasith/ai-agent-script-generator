@@ -1,0 +1,25 @@
+{
+    "type": "api_tool",
+    "name": "api_tool1",
+    "toolId": "api_tool1",
+    "config": {
+        "url": "https://www.google.com",
+        "method": "PoST",
+        "queryParameters": {
+            "name": "John",
+            "age": 30
+        },
+        "headers": {
+            "Content-Type": "application/json"
+        },
+        "body": {
+            "name": "John",
+            "age": 30
+        },
+        "timeout": 1000,
+        "apiKey": "1234567890",
+        "responseFormat": "json",
+        "maxRetry": 3,
+        "retryInterval": 1000
+    }
+}

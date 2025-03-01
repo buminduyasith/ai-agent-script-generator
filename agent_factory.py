@@ -12,15 +12,15 @@ import json
 
 class AgentFactory(ABC):
     """Abstract factory for creating agents based on different frameworks."""
-    
+
     @abstractmethod
     def create_agent(self, agent_config: Dict[str, Any]) -> str:
         """
         Create agent code based on the configuration.
-        
+
         Args:
             agent_config: Dictionary containing agent configuration
-            
+
         Returns:
             String representation of the generated agent code
         """
@@ -29,7 +29,7 @@ class AgentFactory(ABC):
 
 class CrewAIAgentFactory(AgentFactory):
     """Factory for creating CrewAI agents."""
-    
+
     def create_agent(self, agent_config: Dict[str, Any]) -> str:
         """Create a CrewAI agent based on the configuration."""
         role = agent_config.get("role", "")
@@ -37,12 +37,12 @@ class CrewAIAgentFactory(AgentFactory):
         expected_output = agent_config.get("expectedOutput", "")
         model = agent_config.get("model", "gpt-4")
         tools = agent_config.get("tools", [])
-        
+
         # Here we would generate the actual code for a CrewAI agent
         # For now, we'll just return a template string
-        
+
         tools_str = ", ".join([f'"{tool}"' for tool in tools])
-        
+
         code = f'''
 from crewai import Agent
 
@@ -62,20 +62,20 @@ agent = Agent(
 
 class PydanticAIAgentFactory(AgentFactory):
     """Factory for creating Pydantic AI agents."""
-    
+
     def create_agent(self, agent_config: Dict[str, Any]) -> str:
         """Create a Pydantic AI agent based on the configuration."""
         system_prompt = agent_config.get("systemPrompt", "")
         model = agent_config.get("model", "gpt-4")
         tools = agent_config.get("tools", [])
-        
+
         # Convert model name to Pydantic AI format if needed
         if ":" not in model:
             model = f"openai:{model}"
-        
+
         # Here we would generate the actual code for a Pydantic AI agent
         # For now, we'll just return a template string
-        
+
         tools_code = ""
         for tool in tools:
             tools_code += f'''
@@ -93,7 +93,7 @@ def {tool}(query: str) -> str:
     # Implementation for {tool}
     return f"Result for {{query}} using {tool}"
 '''
-        
+
         code = f'''
 from pydantic_ai import Agent
 from pydantic_ai.run import RunContext
@@ -124,23 +124,23 @@ def run_agent(query):
 
 class AgentFactoryProvider:
     """Provider class to get the appropriate factory based on the framework."""
-    
+
     @staticmethod
     def get_factory(framework: str) -> AgentFactory:
         """
         Get the appropriate factory based on the framework.
-        
+
         Args:
             framework: The name of the framework (e.g., 'crewai', 'pydantic-ai')
-            
+
         Returns:
             An instance of the appropriate AgentFactory
-            
+
         Raises:
             ValueError: If the framework is not supported
         """
         framework = framework.lower()
-        
+
         if framework == "crewai":
             return CrewAIAgentFactory()
         elif framework in ["pydantic-ai", "pydantic_ai", "pydanticai"]:
@@ -152,20 +152,20 @@ class AgentFactoryProvider:
 def generate_agent_code(agent_config: Dict[str, Any]) -> str:
     """
     Generate agent code based on the configuration.
-    
+
     Args:
         agent_config: Dictionary containing agent configuration
-        
+
     Returns:
         String representation of the generated agent code
-        
+
     Raises:
         ValueError: If the framework is not specified or not supported
     """
     framework = agent_config.get("framework")
     if not framework:
         raise ValueError("Framework not specified in agent configuration")
-    
+
     factory = AgentFactoryProvider.get_factory(framework)
     return factory.create_agent(agent_config)
 
@@ -173,10 +173,10 @@ def generate_agent_code(agent_config: Dict[str, Any]) -> str:
 def parse_agent_json(json_str: str) -> Dict[str, Any]:
     """
     Parse JSON string to extract agent configuration.
-    
+
     Args:
         json_str: JSON string containing agent configuration
-        
+
     Returns:
         Dictionary containing agent configuration
     """
@@ -198,14 +198,14 @@ if __name__ == "__main__":
         "systemPrompt": "Provide up-to-date market analysis of the AI industry",
         "expectedOutput": "An expert analyst with a keen eye for market trends",
         "model": "gpt-4",
-        "tools": ["search_tool", "web_rag_tool"]
+        "tools": ["web_api_tool", "rag_tool"]
       }
     }
     '''
-    
+
     # Parse JSON
     agent_config = parse_agent_json(example_json)
-    
+
     # Generate agent code
     try:
         agent_code = generate_agent_code(agent_config)
