@@ -1,40 +1,19 @@
 {
-    },
-    "agents": [
+    "nodes": [
         {
-            "name":"agent1",
-            "agentId": "agent1",
-            "llmId": "llm-1",
-            "framework": "langraph_react_agent",
-            "systemPrompt": "i am a highly intelligent question answering bot"
-
-        }
-    ],
-    "tools": [
-        {
-            "type": "api_tool",
-            "name": "api_tool1",
-            "toolId": "api_tool1",
-            "agentId": "agent1",
+            "node_type": "agent",
+            "name": "agent1",
             "config": {
-                "url": "https://www.google.com",
-                "method": "PoST",
-                "queryParameters": {
-                    "name": "John",
-                    "age": 30
-                },
-                "headers": {
-                    "Content-Type": "application/json"
-                },
-                "body": {
-                    "name": "John",
-                    "age": 30
-                },
-                "timeout": 1000,
-                "apiKey": "1234567890",
-                "responseFormat": "json",
-                "maxRetry": 3,
-                "retryInterval": 1000,
+                "llmId": "llm-1",
+                "framework": "langraph_react_agent",
+                "role": "agent",
+                "systemPrompt": "i am a highly intelligent question answering bot",
+                "tools": [
+                    {
+                        "type": "api_tool",
+                        "toolId": "api_tool1"
+                    }
+                ]
             }
         }
     ]
