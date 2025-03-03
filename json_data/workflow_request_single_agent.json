@@ -1,6 +1,7 @@
 {
     "workflow_metadata": {
         "workflow_id": "wf_001",
+        "workspace_id": "ws_001",
         "name": "AI Workflow with Router Logic",
         "description": "A workflow where a router node decides which path to take.",
         "version": "1.0",
@@ -55,6 +56,10 @@
                         }
                     }
                 ]
+            },
+            "position": {
+                "left": 100,
+                "top": 100
             }
         },
         {
@@ -112,6 +117,10 @@
                 "llmId": "llm-001",
                 "promptTemplateId": "pt-003",
                 "tools": []
+            },
+            "position": {
+                "left": 100,
+                "top": 100
             }
         }
     ],
