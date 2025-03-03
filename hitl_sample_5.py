@@ -32,7 +32,7 @@ def get_weather(location: str):
     answer = interrupt(
         # This value will be sent to the client
         # as part of the interrupt information.
-        "what is your age?"
+        "confirm access to weather information",
     )
     if answer == "yes":
         print("get_weather...........................")
