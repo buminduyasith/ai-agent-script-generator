@@ -50,11 +50,11 @@ memory = MemorySaver()
 
 # Define the graph
 
-# graph = create_react_agent(
-#     model, tools=tools, interrupt_before=["tools"], checkpointer=memory
-# )
-
 graph = create_react_agent(
+    model, tools=tools, interrupt_before=["tools"], checkpointer=memory
+)
+
+graph2 = create_react_agent(
     model, tools=tools, interrupt_before=['get_weather'], checkpointer=memory
 )
 
