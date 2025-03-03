@@ -8,6 +8,14 @@ from langgraph.prebuilt.chat_agent_executor import (
     AgentState,
 )
 
+from langgraph.checkpoint.memory import MemorySaver
+
+from dotenv import load_dotenv
+
+load_dotenv()
+
+memory = MemorySaver()
+
 # Define a state class for the agents (extending MessagesState)
 
 
@@ -59,6 +67,7 @@ def post_data(payload: str) -> str:
     """
     # In a real scenario, you might perform a requests.post() call here.
     # For this example, we simulate a response.
+    print(f"Posting data: {payload}")
     return '{"status": "success", "message": "Data posted successfully"}'
 
 # ------------------------------------------------------------------------------
@@ -82,6 +91,7 @@ Return only the retrieved data as a JSON structure. If no data is found, return 
 post_data_agent = create_react_agent(
     model,
     tools=[post_data],
+    interrupt_before=["tools"], checkpointer=memory,
     prompt=(
         """
 You are a data submission operator. When provided with data, use the post_data tool to send a POST request to an external API.
@@ -140,16 +150,20 @@ print("Starting the graph execution...")
 
 # Begin with an initial message that includes a query.
 # For example: "Please fetch data for product id 101"
+
+config = {"configurable": {"thread_id": "42"}}
+
 result = graph.invoke({"messages": [
     HumanMessage(
         content="Please fetch data for product id 101 and create a new product with the same data")
-]})
+]}, config=config)
 
 # # Print the final output from the graph (response from the POST request)
 # final_msg = result["messages"][-1].content
 # print("Final Output:")
 # print(final_msg)
 
+print(result)
 
-for m in result["messages"]:
-    print(m.pretty_print())
+# for m in result["messages"]:
+#     print(m)
