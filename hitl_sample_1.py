@@ -7,7 +7,7 @@ from langgraph.prebuilt import create_react_agent
 from langgraph.prebuilt.chat_agent_executor import (
     AgentState,
 )
-
+from langgraph.types import interrupt, Command
 from langgraph.checkpoint.memory import MemorySaver
 
 from dotenv import load_dotenv
@@ -65,6 +65,11 @@ def post_data(payload: str) -> str:
     Returns:
         str: A JSON string representing the API response.
     """
+    answer = interrupt(
+        # This value will be sent to the client
+        # as part of the interrupt information.
+        "confirm access to weather information",
+    )
     # In a real scenario, you might perform a requests.post() call here.
     # For this example, we simulate a response.
     print(f"Posting data: {payload}")
@@ -91,7 +96,6 @@ Return only the retrieved data as a JSON structure. If no data is found, return 
 post_data_agent = create_react_agent(
     model,
     tools=[post_data],
-    interrupt_before=["tools"], checkpointer=memory,
     prompt=(
         """
 You are a data submission operator. When provided with data, use the post_data tool to send a POST request to an external API.
@@ -140,7 +144,7 @@ builder.add_edge("DataRetrieval", "DataSubmission")
 builder.add_edge("DataSubmission", END)
 
 # Compile the graph
-graph = builder.compile()
+graph = builder.compile(checkpointer=memory)
 
 # ------------------------------------------------------------------------------
 # Execute the graph
@@ -167,3 +171,7 @@ print(result)
 
 # for m in result["messages"]:
 #     print(m)
+
+
+answer = input(">>> ")
+graph.invoke(Command(resume=answer), config, stream_mode="values")
