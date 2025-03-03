@@ -1,0 +1,15 @@
+{
+    "tool_id": "rag_001",
+    "name": "Document Retriever",
+    "type": "RAG",
+    "description": "Retrieves context from a vector database for enhanced responses.",
+    "config": {
+        "embedding_model": "slm_001",
+        "vector_db_url": "db_001",
+        "retrieval_strategy": {
+            "top_k": 5,
+            "similarity_threshold": 0.85
+        },
+        "response_format": "text"
+    }
+}

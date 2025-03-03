@@ -1,25 +1,26 @@
 {
+    "tool_id": "api_001",
+    "name": "Weather API",
     "type": "api_tool",
-    "name": "api_tool1",
-    "toolId": "api_tool1",
+    "description": "Fetches weather data from an external API.",
     "config": {
-        "url": "https://www.google.com",
-        "method": "PoST",
-        "queryParameters": {
-            "name": "John",
-            "age": 30
-        },
+        "method": "GET",
+        "base_url": "https://api.weather.com/v1",
+        "endpoint": "/forecast",
         "headers": {
-            "Content-Type": "application/json"
+            "Authorization": "Bearer xxxxxxx",
+            "Accept": "application/json"
         },
-        "body": {
-            "name": "John",
-            "age": 30
+        "query_params": {
+            "location": "{user_input_location}",
+            "unit": "metric"
         },
-        "timeout": 1000,
-        "apiKey": "1234567890",
-        "responseFormat": "json",
-        "maxRetry": 3,
-        "retryInterval": 1000
+        "body": null,
+        "response_mapping": "data.current.temperature",
+        "error_handling": {
+            "retry_attempts": 3,
+            "timeout": 5000,
+            "fallback_response": "Could not retrieve weather data."
+        }
     }
 }

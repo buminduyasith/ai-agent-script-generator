@@ -1,20 +1,85 @@
 {
+    "workflow_metadata": {
+        "workflow_id": "wf_001",
+        "name": "AI Workflow with Router Logic",
+        "description": "A workflow where a router node decides which path to take.",
+        "version": "1.0",
+        "created_date": "2025-03-02T00:00:00Z",
+        "updated_date": "2025-03-02T00:00:00Z"
+    },
     "nodes": [
         {
-            "node_type": "agent",
-            "name": "agent1",
-            "config": {
-                "llmId": "llm-1",
-                "framework": "langraph_react_agent",
-                "role": "agent",
-                "systemPrompt": "i am a highly intelligent question answering bot",
-                "tools": [
-                    {
-                        "type": "api_tool",
-                        "toolId": "api_tool1"
-                    }
-                ]
+            "id": "node_agent_1",
+            "type": "agent",
+            "label": "Agent Node",
+            "description": "An AI agent that processes data and decides which path to take.",
+            "llm": {
+                "model_id": "llm_001",
+                "config": {
+                    "temperature": 0.7,
+                    "max_tokens": 150
+                }
             }
+        },
+        {
+            "id": "node_router_1",
+            "type": "router",
+            "label": "Router Node",
+            "description": "Decides the next path based on conditions."
+        },
+        {
+            "id": "node_tool_api_1",
+            "type": "api_tool",
+            "label": "API Tool Node",
+            "description": "A node that calls an external API.",
+            "api_config": {
+                "method": "GET",
+                "endpoint": "https://api.example.com/data",
+                "headers": {
+                    "Accept": "application/json"
+                }
+            }
+        }
+    ],
+    "edges": [
+        {
+            "source": "node_1",
+            "condition": {
+                "type": "simple",
+                "description": "If confidence is high, proceed to Node 2.",
+                "left_operand": "agent_response.confidence",
+                "operator": ">=",
+                "right_operand": 0.8,
+                "value_type": "number"
+            },
+            "true_target": "node_2",
+            "false_target": "node_3"
+        },
+        {
+            "source": "node_2",
+            "condition": {
+                "type": "simple",
+                "description": "If API call fails, retry.",
+                "left_operand": "api_response.success",
+                "operator": "==",
+                "right_operand": false,
+                "value_type": "boolean"
+            },
+            "true_target": "node_4",
+            "false_target": "node_2"
+        },
+        {
+            "source": "node_3",
+            "condition": {
+                "type": "simple",
+                "description": "If additional data is required, go to RAG tool.",
+                "left_operand": "requires_additional_context",
+                "operator": "==",
+                "right_operand": true,
+                "value_type": "boolean"
+            },
+            "true_target": "node_rag_tool",
+            "false_target": "node_fallback"
         }
     ]
 }
