@@ -28,9 +28,16 @@
                     }
                 ]
             },
-            "position": {
-                "left": 100,
-                "top": 100
+            "layout": {
+                "position": {
+                    "left": 100,
+                    "top": 100
+                },
+                "dimensions": {
+                    "width": 180,
+                    "height": 64
+                },
+                "is_locked": false
             }
         },
         {
@@ -80,9 +87,16 @@
                     }
                 ]
             },
-            "position": {
-                "left": 100,
-                "top": 100
+            "layout": {
+                "position": {
+                    "left": 100,
+                    "top": 100
+                },
+                "dimensions": {
+                    "width": 180,
+                    "height": 64
+                },
+                "is_locked": false
             }
         },
         {
@@ -131,9 +145,16 @@
                     }
                 ]
             },
-            "position": {
-                "left": 100,
-                "top": 100
+            "layout": {
+                "position": {
+                    "left": 100,
+                    "top": 100
+                },
+                "dimensions": {
+                    "width": 180,
+                    "height": 64
+                },
+                "is_locked": false
             }
         }
     ],
