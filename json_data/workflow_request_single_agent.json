@@ -124,7 +124,7 @@
         {
             "source": "component_2",
             "target": "component_3",
-            "type": "auto",
+            "type": "conditional",
             "condition": {
                 "expression": {
                     "type": "simple",
