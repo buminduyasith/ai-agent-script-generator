@@ -1,0 +1,139 @@
+{
+    "workflow_metadata": {
+        "workflow_id": "wf_001",
+        "name": "AI Workflow with Router Logic",
+        "description": "A workflow where a router node decides which path to take.",
+        "version": "1.0",
+        "created_date": "2025-03-02T00:00:00Z",
+        "updated_date": "2025-03-02T00:00:00Z"
+    },
+
+    "nodes": [
+        {
+            "id": "component_1",
+            "type": "supervisor_agent",
+            "label": "supervisor",
+            "config": {
+                "llmId": "llm-001",
+                "promptTemplateId": "pt-001",
+                "team": [
+                    {
+                        "id": "component_2",
+                        "specialization": "use this agent when you need to get data from an external API"
+                    },
+                    {
+                        "id": "component_3",
+                        "specialization": "use this agent for calculations and data processing"
+                    }
+                ]
+            }
+        },
+        {
+            "id": "component_2",
+            "type": "agent",
+            "label": "api handling agent",
+            "config": {
+                "llmId": "llm-001",
+                "promptTemplateId": "pt-002",
+                "tools": [
+                    {
+                        "id": "tool-001",
+                        "config": {
+                            "method": "GET",
+                            "base_url": "https://api.weather.com/v1",
+                            "description": "Fetches weather data from an external API.",
+                            "endpoint": "/forecast",
+                            "headers": {
+                                "Authorization": "Bearer xxxxxxx",
+                                "Accept": "application/json"
+                            },
+                            "query_params": [
+                                {
+                                    "feild": "location",
+                                    "type": "text",
+                                    "discription": "location to get weather data for",
+                                    "required": true
+                                },
+                                {
+                                    "feild": "temp",
+                                    "type": "number",
+                                    "discription": "location to get weather data for",
+                                    "required": true
+                                }
+                            ],
+                            "body": [],
+                            "response_mapping": "data.current.temperature",
+                            "error_handling": {
+                                "retry_attempts": 3,
+                                "timeout": 5000,
+                                "fallback_response": "Could not retrieve weather data."
+                            }
+                        },
+                        "hitl": {
+                            "enabled": false
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "id": "component_3",
+            "type": "agent",
+            "label": "API Tool Node",
+            "config": {
+                "llmId": "llm-001",
+                "promptTemplateId": "pt-003",
+                "tools": [
+                    {
+                        "id": "tool-001",
+                        "config": {
+                            "method": "POST",
+                            "base_url": "https://api.weather.com/v1",
+                            "description": "add new data to the external API",
+                            "endpoint": "/forecast",
+                            "headers": {
+                                "Authorization": "Bearer xxxxxxx",
+                                "Accept": "application/json"
+                            },
+                            "body": [
+                                {
+                                    "feild": "location",
+                                    "type": "text",
+                                    "discription": "location to get weather data for",
+                                    "required": true
+                                },
+                                {
+                                    "feild": "temp",
+                                    "type": "number",
+                                    "discription": "location to get weather data for",
+                                    "required": true
+                                }
+                            ],
+                            "error_handling": {
+                                "retry_attempts": 3,
+                                "timeout": 5000,
+                                "fallback_response": "Could not retrieve weather data."
+                            }
+                        },
+                        "hitl": {
+                            "enabled": false,
+                            "stage": "before"
+                        }
+                    }
+                ]
+            }
+        }
+    ],
+    "connections": [
+        {
+            "source": "component_1",
+            "target": "component_2",
+            "type": "auto" // auto, direct, or conditional
+        },
+        {
+            "source": "component_1",
+            "target": "component_3",
+            "type": "auto"
+        }
+    ]
+}
