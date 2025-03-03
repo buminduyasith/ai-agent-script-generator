@@ -115,7 +115,7 @@
             }
         }
     ],
-    "connections": [
+    "edges": [
         {
             "source": "component_1",
             "target": "component_2",
