@@ -18,6 +18,8 @@ langchain-community = "^0.3.18"
 langchain-openai = "^0.3.7"
 pydantic-ai = "^0.0.28"
 ipykernel = "^6.29.5"
+langgraph-checkpoint-postgres = "^2.0.15"
+psycopg-binary = "^3.2.5"
 
 [build-system]
 requires = ["poetry-core"]
