@@ -52,7 +52,9 @@
                             }
                         },
                         "hitl": {
-                            "enabled": false
+                            "enabled": false,
+                            "display_message": null,
+                            "stage": null
                         }
                     }
                 ]
@@ -110,6 +112,7 @@
                         },
                         "hitl": {
                             "enabled": false,
+                            "display_message": "please confirm this action",
                             "stage": "before"
                         }
                     }

@@ -82,7 +82,9 @@
                             }
                         },
                         "hitl": {
-                            "enabled": false
+                            "enabled": false,
+                            "display_message": null,
+                            "stage": null
                         }
                     }
                 ]
