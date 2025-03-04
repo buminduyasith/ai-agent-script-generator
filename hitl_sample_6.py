@@ -70,6 +70,7 @@ builder.add_edge("finalized", END)
 
 builder.set_entry_point("react_agent")
 
+# Default config - will be overridden by command line argument if provided
 config = {"configurable": {"thread_id": "44"}}
 inputs = {"messages": [("user", "what is the weather in new york")]}
 
@@ -88,8 +89,17 @@ def print_stream(stream):
 DB_URI = "postgresql://postgres:mysecretpassword@localhost:5432/langgraph_db?sslmode=disable"
 
 
-def start_conversation():
-    """Start a new conversation."""
+def start_conversation(thread_id=None):
+    """Start a new conversation.
+    
+    Args:
+        thread_id: Optional thread ID to use for the conversation.
+    """
+    # Use the provided thread_id if available, otherwise use the default
+    conversation_config = config.copy()
+    if thread_id:
+        conversation_config["configurable"]["thread_id"] = thread_id
+        
     with PostgresSaver.from_conn_string(DB_URI) as postgres_checkpointer:
         connection_kwargs = {
             "autocommit": True,
@@ -98,15 +108,25 @@ def start_conversation():
 
         postgres_checkpointer.setup()
         graph = builder.compile(checkpointer=postgres_checkpointer)
-        print("Starting a new conversation...")
-        print_stream(graph.stream(inputs, config, stream_mode="values"))
+        print(f"Starting a new conversation with thread_id: {conversation_config['configurable']['thread_id']}...")
+        print_stream(graph.stream(inputs, conversation_config, stream_mode="values"))
 
 # answer = input(">>> ")
 
 # print_stream(graph.stream(Command(resume=answer),
 #              config, stream_mode="values"))
 
-def resum_graph():
+def resum_graph(thread_id=None):
+    """Resume a conversation.
+    
+    Args:
+        thread_id: Optional thread ID to use for the conversation.
+    """
+    # Use the provided thread_id if available, otherwise use the default
+    conversation_config = config.copy()
+    if thread_id:
+        conversation_config["configurable"]["thread_id"] = thread_id
+        
     DB_URI = "postgresql://postgres:mysecretpassword@localhost:5432/langgraph_db?sslmode=disable"
     with PostgresSaver.from_conn_string(DB_URI) as postgres_checkpointer:
         connection_kwargs = {
@@ -116,16 +136,24 @@ def resum_graph():
 
         postgres_checkpointer.setup()
         graph = builder.compile(checkpointer=postgres_checkpointer)
+        print(f"Resuming conversation with thread_id: {conversation_config['configurable']['thread_id']}...")
         print_stream(graph.stream(Command(resume="yes"),
-                    config, stream_mode="values"))
+                    conversation_config, stream_mode="values"))
 
 
 if __name__ == "__main__":
     import sys
 
-    if len(sys.argv) > 1 and sys.argv[1] == "sc":
-        start_conversation()
-    elif len(sys.argv) > 1 and sys.argv[1] == "rs":
-        resum_graph()
+    if len(sys.argv) > 1:
+        command = sys.argv[1]
+        # Check if a thread_id is provided as the third argument
+        thread_id = sys.argv[2] if len(sys.argv) > 2 else None
+        
+        if command == "sc":
+            start_conversation(thread_id)
+        elif command == "rs":
+            resum_graph(thread_id)
+        else:
+            print("Usage: python hitl_sample_6.py [sc|rs] [thread_id]")
     else:
-        print("Usage: python hitl_sample_6.py [sc|rs]")
+        print("Usage: python hitl_sample_6.py [sc|rs] [thread_id]")
