@@ -141,6 +141,9 @@ def resum_graph(thread_id=None):
                     conversation_config, stream_mode="values"))
 
 
+# poetry run python .\hitl_sample_6.py sc 10
+# poetry run python .\hitl_sample_6.py rs 10 
+
 if __name__ == "__main__":
     import sys
 
