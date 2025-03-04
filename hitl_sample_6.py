@@ -70,7 +70,7 @@ builder.add_edge("finalized", END)
 
 builder.set_entry_point("react_agent")
 
-config = {"configurable": {"thread_id": "43"}}
+config = {"configurable": {"thread_id": "44"}}
 inputs = {"messages": [("user", "what is the weather in new york")]}
 
 def print_stream(stream):
@@ -120,5 +120,12 @@ def resum_graph():
                     config, stream_mode="values"))
 
 
-#start_conversation()
-resum_graph()
+if __name__ == "__main__":
+    import sys
+
+    if len(sys.argv) > 1 and sys.argv[1] == "sc":
+        start_conversation()
+    elif len(sys.argv) > 1 and sys.argv[1] == "rs":
+        resum_graph()
+    else:
+        print("Usage: python hitl_sample_6.py [sc|rs]")
