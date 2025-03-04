@@ -36,7 +36,7 @@ def post_weather(location: str):
         "confirm access to weather information",
     )
     if answer == "yes":
-        print("get_weather...........................")
+        print("post request...........................")
         if location.lower() in ["nyc", "new york"]:
             return "It might be cloudy in nyc"
         elif location.lower() in ["sf", "san francisco"]:
@@ -51,7 +51,7 @@ def post_weather(location: str):
 @tool
 def get_weather(location: str):
     """Use this to get weather information from a given location."""
-    print("starting get weather api call")
+    print("*******************starting get weather api call*******************")
     return "It might be cloudy in nyc {location}".format(location=location)
 
 
@@ -161,8 +161,8 @@ def resum_graph(thread_id=None):
                                   conversation_config, stream_mode="values"))
 
 
-# poetry run python .\hitl_sample_6.py sc 10
-# poetry run python .\hitl_sample_6.py rs 10
+# poetry run python .\hitl_sample_6.py sc 10 (10 -> thread_id)
+# poetry run python .\hitl_sample_6.py rs 10 (10 -> thread_id)
 
 if __name__ == "__main__":
     import sys
