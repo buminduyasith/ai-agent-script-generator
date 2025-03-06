@@ -1,0 +1,7 @@
+{
+    "graphs": {
+        "agent": "./hitl_sample_5.py:graph",
+        "agent2": "./langraph_debug_cli.py:graph"
+    },
+    "env": ".env"
+}
