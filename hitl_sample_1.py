@@ -16,9 +16,6 @@ load_dotenv()
 
 memory = MemorySaver()
 
-# Define a state class for the agents (extending MessagesState)
-
-
 class AgentState(MessagesState):
     """State for our agents."""
     pass
