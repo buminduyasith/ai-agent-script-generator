@@ -1,0 +1,14 @@
+{
+    "name": "Customer Support Response",
+    "description": "A structured template for responding to customer queries.",
+    "provider": "openai",
+    "model": "gpt-3.5-turbo",
+    "config": {
+        "baseUrl": "https://api.openai.com/v1/",
+        "temperature": 0.7,
+        "apiKey": "1234567890",
+        "maxRetry": 3,
+        "streamResponse": true,
+        "stopSequences": []
+    }
+}

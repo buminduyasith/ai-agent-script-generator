@@ -1,0 +1,10 @@
+{
+    "name": "Sales Assignment Agent",
+    "description": "An intelligent agent designed to assist with sales assignments by responding to customer queries efficiently and accurately.",
+    "prompt_template_id": "ffef5fb7-e20d-45cb-803d-d8870939a293",
+    "llm_id": "bbef5fb7-e20d-45cb-803d-d8870939a293",
+    "tools": {
+        "api_tools": ["dsef5fb7-e20d-45cb-803d-d8870939a293", "cccf5fb7-e20d-45cb-803d-d8870939a293"]
+    },
+    "config": {}
+}

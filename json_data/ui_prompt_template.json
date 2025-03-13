@@ -1,0 +1,7 @@
+{
+    "name": "Customer Support Response",
+    "description": "A structured template for responding to customer queries.",
+    "config": {
+        "prompt_template": "Hello {{customer_name}}, thank you for reaching out. How can I assist you today?"
+    }
+}
