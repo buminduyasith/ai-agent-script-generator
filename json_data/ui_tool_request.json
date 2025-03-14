@@ -7,6 +7,7 @@
         "url": "http://localhost:3500/assign-lead",
         "headers": {
             "Content-Type": "application/json"
+            "x-api-key": "sk.eyJ1Ijoi47bbbJ4Z2J4ZzBhZmIybnF0ZmZ2Z3Z2Z2MifQ"
         },
         "retry_attempts": 3,
         "wait_fixed_attempts": 2,
@@ -16,18 +17,6 @@
                 "description": "Sales Lead Identifier",
                 "type": "string",
                 "required": true
-            }
-        },
-        "security": {
-            "is_protected": true,
-            "auth": {
-                "type": "API_KEY",
-                "config": {
-                    "header_name": "x-api-key", // Constant header name
-                    "key_identifier": "x-api-key", // Logical name of the key
-                    "key_value": "sk.eyJ1Ijoi47bbbJ4Z2J4ZzBhZmIybnF0ZmZ2Z3Z2Z2MifQ", // Actual API key (if stored here)
-                    "key_reference": "{{vault::workspace/1/tool/ffef5fb7-e20d-45cb-803d-d8870939a293/x-api-key}}" // Reference to stored API key
-                }
             }
         }
     }
