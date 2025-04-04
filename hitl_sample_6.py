@@ -3,7 +3,7 @@ from langgraph.checkpoint.memory import MemorySaver
 from langchain_core.tools import tool
 from typing import Literal
 import os
-from langchain_core.messages import HumanMessage
+from langchain_core.messages import HumanMessage, AIMessageChunk, AIMessage
 from langchain_openai import ChatOpenAI
 from dotenv import load_dotenv
 from langgraph.prebuilt.chat_agent_executor import (
@@ -51,6 +51,11 @@ def post_weather(location: str):
 @tool
 def get_weather(location: str):
     """Use this to get weather information from a given location."""
+    answer = interrupt(
+        # This value will be sent to the client
+        # as part of the interrupt information.
+        "confirm access to weather information",
+    )
     print("*******************starting get weather api call*******************")
     return "It might be cloudy in nyc {location}".format(location=location)
 
@@ -60,11 +65,16 @@ post_agent = create_react_agent(
         """you are a helpful assistant. use only tools below to answer the user's question.""")
 )
 
-
-get_agent = create_react_agent(
+ag = create_react_agent(
     model, tools=[get_weather], prompt=(
-        """you are a helpful assistant. use only tools below to answer the user's question""")
+        """you are a helpful assistant. greet user and reply to user question friendly. 
+        if user ask to get weather information, use the tools you have.""")
 )
+def get_agent(state):
+    msg =state['messages'][-1][1]
+    formatted_input = {"messages": [HumanMessage(content=msg)]}
+    data = ag.invoke(formatted_input)
+    
 
 
 def finalized(agent_state: AgentState):
@@ -86,26 +96,22 @@ builder.set_entry_point("get_agent")
 
 # Default config - will be overridden by command line argument if provided
 config = {"configurable": {"thread_id": "44"}}
-inputs = {"messages": [("user", "what is the weather in new york")]}
+
 
 
 def print_stream(stream):
     """A utility to pretty print the stream."""
     for s in stream:
-        if "messages" not in s:
-            print(s)
-            continue
-        message = s["messages"][-1]
-        if isinstance(message, tuple):
-            print(message)
-        else:
-            message.pretty_print()
+        if s[1] == "messages":
+            if isinstance(s[-1][0], AIMessageChunk):
+                content = s[-1][0].content
+                print(content)
 
 
 DB_URI = "postgresql://postgres:mysecretpassword@localhost:5432/langgraph_db?sslmode=disable"
 
 
-def start_conversation(thread_id=None):
+def start_conversation(msg: str, thread_id=None):
     """Start a new conversation.
 
     Args:
@@ -115,7 +121,8 @@ def start_conversation(thread_id=None):
     conversation_config = config.copy()
     if thread_id:
         conversation_config["configurable"]["thread_id"] = thread_id
-
+        
+    inputs = {"messages": [("user", msg)]}
     with PostgresSaver.from_conn_string(DB_URI) as postgres_checkpointer:
         connection_kwargs = {
             "autocommit": True,
@@ -126,8 +133,10 @@ def start_conversation(thread_id=None):
         graph = builder.compile(checkpointer=postgres_checkpointer)
         print(
             f"Starting a new conversation with thread_id: {conversation_config['configurable']['thread_id']}...")
-        print_stream(graph.stream(
-            inputs, conversation_config, stream_mode="values"))
+        for s in graph.stream(
+            inputs, conversation_config, stream_mode="values", subgraphs=True):
+            if (s[1] == "messages"):
+                content = s[1][-1]
 
 # answer = input(">>> ")
 
@@ -155,6 +164,8 @@ def resum_graph(thread_id=None):
 
         postgres_checkpointer.setup()
         graph = builder.compile(checkpointer=postgres_checkpointer)
+        state = graph.get_state(conversation_config).values
+        next =graph.get_state(conversation_config).next
         print(
             f"Resuming conversation with thread_id: {conversation_config['configurable']['thread_id']}...")
         print_stream(graph.stream(Command(resume="yes"),
@@ -164,19 +175,28 @@ def resum_graph(thread_id=None):
 # poetry run python .\hitl_sample_6.py sc 10 (10 -> thread_id)
 # poetry run python .\hitl_sample_6.py rs 10 (10 -> thread_id)
 
-if __name__ == "__main__":
-    import sys
+# if __name__ == "__main__":
+#     import sys
 
-    if len(sys.argv) > 1:
-        command = sys.argv[1]
-        # Check if a thread_id is provided as the third argument
-        thread_id = sys.argv[2] if len(sys.argv) > 2 else None
+#     if len(sys.argv) > 1:
+#         command = sys.argv[1]
+#         # Check if a thread_id is provided as the third argument
+#         thread_id = sys.argv[2] if len(sys.argv) > 2 else None
 
-        if command == "sc":
-            start_conversation(thread_id)
-        elif command == "rs":
-            resum_graph(thread_id)
-        else:
-            print("Usage: python hitl_sample_6.py [sc|rs] [thread_id]")
+#         if command == "sc":
+#             start_conversation(thread_id)
+#         elif command == "rs":
+#             resum_graph(thread_id)
+#         else:
+#             print("Usage: python hitl_sample_6.py [sc|rs] [thread_id]")
+#     else:
+#         start_conversation(thread_id)
+#         print("Usage: python hitl_sample_6.py [sc|rs] [thread_id]")
+
+while True:
+    thread_id = "003"
+    command = input("Enter your message: ")
+    if command != "yes":
+        start_conversation(command, thread_id)
     else:
-        print("Usage: python hitl_sample_6.py [sc|rs] [thread_id]")
+        resum_graph(thread_id)
