@@ -1,111 +1,127 @@
-from langgraph.prebuilt import create_react_agent
-from langgraph.checkpoint.memory import MemorySaver
-from langchain_core.tools import tool
-from typing import Literal
 import os
-from langchain_core.messages import HumanMessage, AIMessageChunk, AIMessage
-from langchain_openai import ChatOpenAI
+from typing import List
+
 from dotenv import load_dotenv
-from langgraph.prebuilt.chat_agent_executor import (
-    AgentState,
-)
-from langgraph.graph import START, END, Graph, MessagesState
-from langgraph.errors import GraphInterrupt
-from langgraph.types import Command
-from langgraph.types import interrupt
-from langgraph.checkpoint.postgres import PostgresSaver
+from langchain_core.messages import HumanMessage, AIMessage, ToolMessage
+from langchain_core.tools import tool
+from langchain_openai import ChatOpenAI
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
 load_dotenv()
 
+# Initialize the model
 model = ChatOpenAI(model="gpt-4o-mini", temperature=0)
-memory = MemorySaver()
 
-
-class AgentState(MessagesState):
-    """State for our agents."""
-    pass
-
-
+# Define a simple weather tool
 @tool
-def get_weather(location: str):
-    """Use this to get weather information from a given location."""
-    answer = interrupt(
-        # This value will be sent to the client
-        # as part of the interrupt information.
-        "confirm access to weather information",
-    )
-    print("*******************starting get weather api call*******************")
-    return "It might be cloudy in nyc {location}".format(location=location)
+def get_weather(location: str) -> str:
+    """Get the weather for a specific location."""
+    print(f"Getting weather for {location}...")
+    return f"It's currently cloudy in {location} with a chance of rain."
 
+# Define the tools list
+tools = [get_weather]
 
-ag = create_react_agent(
-    model, tools=[get_weather], prompt=(
-        """you are a helpful assistant. greet user and reply to user question friendly. 
-        if user ask to get weather information, use the tools you have.""")
-)
+# Create a prompt template for the agent
+prompt = ChatPromptTemplate.from_messages([
+    ("system", """You are a helpful assistant. If asked about weather, you should use the get_weather tool.
+    Be friendly and concise in your responses."""),
+    MessagesPlaceholder(variable_name="messages"),
+])
 
-
-def get_agent(state):
-    result = ag.invoke({"messages": state["messages"]})
-    return result
-
-
-def finalized(agent_state: AgentState):
-    """A function to handle finalization."""
-    print("Finalized")
-    print(agent_state)
-
-
-builder = Graph()
-builder.add_node("get_agent", get_agent)
-builder.add_edge("get_agent", END)
-
-builder.set_entry_point("get_agent")
-# Default config - will be overridden by command line argument if provided
-config = {"configurable": {"thread_id": "44"}}
-
-
-def print_stream(stream):
-    """A utility to pretty print the stream."""
-    for s in stream:
-        if s[1] == "messages":
-            if isinstance(s[-1][0], AIMessageChunk):
-                content = s[-1][0].content
-                print(content)
-
-
-DB_URI = "postgresql://postgres:mysecretpassword@localhost:5432/langgraph_db?sslmode=disable"
-
-
-def start_conversation(thread_id=None):
-
-    conversation_config = config.copy()
-    if thread_id:
-        conversation_config["configurable"]["thread_id"] = thread_id
-
-    with PostgresSaver.from_conn_string(DB_URI) as postgres_checkpointer:
-        connection_kwargs = {
-            "autocommit": True,
-            "prepare_threshold": 0,
-        }
-
-        postgres_checkpointer.setup()
-        graph = builder.compile(checkpointer=postgres_checkpointer)
-        msg = graph.get_state(conversation_config).values
-        print(
-            f"Starting a new conversation with thread_id: {conversation_config['configurable']['thread_id']}...")
+def start_conversation():
+    """Start a conversation with the agent with human-in-the-loop for tool calls."""
+    print("Starting conversation. Type 'exit' to quit.")
+    
+    # Initialize conversation history
+    messages = []
+    
+    while True:
+        # Get user input
+        user_input = input("\nYou: ")
+        if user_input.lower() == "exit":
+            break
+            
+        # Add user message to history
+        messages.append(HumanMessage(content=user_input))
         
-        while True:
-            msg = input("Enter your message: ")
-            inputs = {"messages": [HumanMessage(content=msg)]}
-            for s in graph.stream(
-                    inputs, conversation_config, stream_mode="values", subgraphs=True):
-                data = s[-1]
-                messages = data.get('messages')
-                # Check if message is an instance of HumanMessage
-                if messages and isinstance(messages[-1], AIMessage):
-                    print(messages[-1].content)
+        # Get response from the model
+        print("\nProcessing...")
+        
+        # Create the full message list to send to the model
+        chain = prompt | model.bind(tools=tools)
+        response = chain.invoke({"messages": messages})
+        
+        # Check if the response contains tool calls
+        if hasattr(response, "tool_calls") and response.tool_calls:
+            # Extract tool call information
+            tool_call = response.tool_calls[0]
+            tool_name = tool_call.get("name")
+            tool_args = tool_call.get("args", {})
+            tool_call_id = tool_call.get("id")
+            
+            # For weather tool, get the location
+            if tool_name == "get_weather" and "location" in tool_args:
+                location = tool_args["location"]
+                
+                # Ask for user confirmation
+                print(f"\nThe assistant wants to use the '{tool_name}' tool for location '{location}'")
+                user_confirmation = input("Do you want to allow this? (yes/no): ")
+                
+                if user_confirmation.lower() == "yes":
+                    # Execute the tool
+                    tool_result = get_weather(location)
+                    
+                    # Create a tool message
+                    tool_message = ToolMessage(
+                        content=tool_result,
+                        name=tool_name,
+                        tool_call_id=tool_call_id
+                    )
+                    
+                    # Add the response and tool message to history
+                    messages.append(response)
+                    messages.append(tool_message)
+                    
+                    # Get final response after tool execution
+                    print(f"Tool executed: {tool_result}")
+                    final_response = chain.invoke({"messages": messages})
+                    
+                    # Add final response to history
+                    messages.append(final_response)
+                    
+                    # Print the assistant's response
+                    print(f"Assistant: {final_response.content}")
+                else:
+                    # If user denies, create a tool message with an error
+                    tool_message = ToolMessage(
+                        content="Tool use was denied by the user.",
+                        name=tool_name,
+                        tool_call_id=tool_call_id
+                    )
+                    
+                    # Add the response and tool message to history
+                    messages.append(response)
+                    messages.append(tool_message)
+                    
+                    # Get final response after tool denial
+                    print("Tool use denied. Continuing without using the tool.")
+                    final_response = chain.invoke({"messages": messages})
+                    
+                    # Add final response to history
+                    messages.append(final_response)
+                    
+                    # Print the assistant's response
+                    print(f"Assistant: {final_response.content}")
+            else:
+                # Handle unknown tool
+                print(f"Unknown tool requested: {tool_name}")
+                messages.append(response)
+                print(f"Assistant: {response.content}")
+        else:
+            # No tool calls, just add the response to history and print it
+            messages.append(response)
+            print(f"Assistant: {response.content}")
 
-
-thread_id = "005"
-start_conversation(thread_id)
+if __name__ == "__main__":
+    start_conversation()
